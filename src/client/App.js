@@ -1,22 +1,51 @@
 import React, { Component } from 'react';
 import './app.css';
-import ReactImage from './react.png';
+
 
 export default class App extends Component {
-  state = { username: null };
+  state = { product: [] };
+
+  // constructor(props) {
+  //   super(props);
+  // }
 
   componentDidMount() {
-    fetch('/api/getUsername')
+    fetch('/api/getAllProducts')
       .then(res => res.json())
-      .then(user => this.setState({ username: user.username }));
+      .then((product) => {
+        this.setState({ product: product.recordset });
+      });
   }
 
   render() {
-    const { username } = this.state;
+    const { product } = this.state;
     return (
-      <div>
-        {username ? <h1>{`Hello ${username}`}</h1> : <h1>Loading.. please wait!</h1>}
-        <img src={ReactImage} alt="react" />
+      <div className="container table-responsive">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Product ID</th>
+              <th>Location ID</th>
+              <th>Shelf</th>
+              <th>Bin</th>
+              <th>Quantity</th>
+              <th>Modified Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              product.map((row, i) =>
+              <tr key= {i}>
+                <td>{row.ProductID}</td>
+                <td>{row.LocationID}</td>
+                <td>{row.Shelf}</td>
+                <td>{row.Bin}</td>
+                <td>{row.Quantity}</td>
+                <td>{row.ModifiedDate}</td>
+              </tr>)
+            }
+          </tbody>
+        </table>
       </div>
     );
   }
