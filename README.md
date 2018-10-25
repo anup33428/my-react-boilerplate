@@ -196,19 +196,51 @@ Express is a web application framework for Node.js. It is used to build our back
 src/server/index.js is the entry point to the server application. Below is the src/server/index.js file
 
 ```javascript
-const express = require("express");
-const os = require("os");
+const express = require('express');
+const bodyParser = require('body-parser');
+const mssql = require('mssql');
+const dbconfig = require('../../.dbconfig');
 
 const app = express();
 
-app.use(express.static("dist"));
-app.get("/api/getUsername", (req, res) =>
-  res.send({ username: os.userInfo().username })
-);
-app.listen(8080, () => console.log("Listening on port 8080!"));
+app.use(express.static('dist'));
+
+// Body Parser Middleware
+app.use(bodyParser.json());
+
+
+// Function to connect to database and execute query
+const executeQuery = (response, query) => {
+  mssql.connect(dbconfig, (error) => {
+    if (error) {
+      console.log(`Error while connecting database :- ${error}`);
+      response.send(error);
+      mssql.close();
+    } else {
+      // create Request object
+      const request = new mssql.Request();
+      // query to the database
+      request.query(query, (err, res) => {
+        if (err) {
+          console.log(`Error while querying database :- ${err}`);
+          response.send(err);
+        } else {
+          response.send(res);
+        }
+        mssql.close();
+      });
+    }
+  });
+};
+
+app.get('/api/getAllProducts', (req, res) => {
+  const query = 'select * from Production.ProductInventory';
+  executeQuery(res, query);
+});
+app.listen(8080, () => console.log('Listening on port 8080!'));
 ```
 
-This starts a server and listens on port 8080 for connections. The app responds with `{username: <username>}` for requests to the URL (/api/getUsername). It is also configured to serve the static files from **dist** directory.
+This starts a server and listens on port 8080 for connections. It is configured to serve the static files from **dist** directory.
 
 ### Concurrently
 
